@@ -1,0 +1,59 @@
+extends layout
+
+block js
+  script(src='http://localhost:35729/livereload.js')
+  script(src='/components/lz-string/libs/lz-string.min.js')
+  script(src='/js/helpers.js')
+  script(src='https://code.jquery.com/jquery-2.1.1.min.js')
+
+block content
+  img#smallfish(src='/img/smallfish.jpg')
+  br
+  button(type='button' onclick='upload()') Upload fishy above!
+  button(type='button' onclick='uploadAudio()') Upload edison audio!
+  #result
+  
+  script.
+    function ajaxUpload(filename, blob) {
+      var formData = new FormData();
+      formData.append('username', 'jiangts');
+      //var content = '<a id="a"><b id="b">hey!</b></a>'; // the body of the new file...
+      //var blob = new Blob([data], { type: "text/xml"});
+      formData.append(filename, blob);
+
+      var xhr = new XMLHttpRequest();
+      xhr.onload = function(e) {
+        if (this.status == 200) {
+          console.log(this.response);
+          document.getElementById('result').innerHtml = this.response;
+        }
+      };
+    
+      xhr.open('POST', '/upload');  //first headache: apparently a 3rd argument of true/false screws the whole POST up!!!
+      xhr.send(formData);
+    };
+
+    function upload() {
+      var data = getBase64Image(document.getElementById('smallfish'));
+      var blob = base64toBlob(data, 'image/jpeg'); 
+      ajaxUpload('smallfishy.jpg', blob);
+      //var blobUrl = URL.createObjectURL(blob);
+
+      //var compressed = LZString.compressToUTF16(data);
+      //var blob = u16toBlob(data, 'image/compressed'); 
+      window.blob = blob;
+    };
+
+    function uploadAudio(cb) {
+      var xhr = new XMLHttpRequest();
+      xhr.onload = function(e) {
+        if (this.status == 200) {
+          var blob = base64toBlob(this.response, 'audio/wav');
+          ajaxUpload('edison.wav', blob);
+        }
+      };
+
+      xhr.open('GET', '/getBase64');
+      xhr.send();
+    };
+
